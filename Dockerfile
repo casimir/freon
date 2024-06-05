@@ -1,10 +1,12 @@
 # syntax=docker/dockerfile:1
 
+ARG VERSION
+
 #-------------------------------------------------------------------------------- 
 # Build server
 #-------------------------------------------------------------------------------- 
 
-FROM golang:1.21-alpine as server
+FROM golang:1.22-alpine as server
 
 RUN apk update && apk add build-base
 
@@ -14,7 +16,7 @@ COPY ./server/go.mod ./server/go.sum ./
 RUN go mod download
 
 COPY ./server/ .
-RUN CGO_ENABLED=1 go build -o ./build/freon
+RUN CGO_ENABLED=1 go build -o ./build/freon -ldflags="-X 'buildinfo.Version=${VERSION}'" .
 
 #-------------------------------------------------------------------------------- 
 # Build UI
