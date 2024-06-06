@@ -42,8 +42,6 @@ class HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildScaffold(UserData userData) {
-    // FIXME multiple useless builds on first load (different _selectedIndex)
-    print('SCAFFOLD BUILD: $this: $_selectedIndex');
     final modules = ref.watch(modulesProvider);
     return AdaptiveScaffold(
       selectedIndex: _selectedIndex,
