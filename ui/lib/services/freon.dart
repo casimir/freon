@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 const serverUrl = kDebugMode ? 'http://localhost:8080' : '';
 
-class FreonError extends Error {
+class FreonError implements Exception {
   FreonError(this.message, [this.error]);
 
   final String message;
@@ -45,7 +45,6 @@ final jsonFetcher =
     FutureProvider.autoDispose.family<dynamic, String>((ref, path) {
   return freonCall(() async {
     final url = serverUrl + path;
-    print('FETCHER: $url');
     final xhr = await HttpRequest.request(url, responseType: 'json');
     ref.onDispose(() {
       xhr.abort();
