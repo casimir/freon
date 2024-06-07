@@ -48,11 +48,12 @@ RUN make ui
 FROM alpine:latest
 
 COPY --from=server /src/server/build/freon-headless /usr/bin/freon
-COPY --from=ui /src/ui/build/web /var/lib/freon-ui
-RUN mkdir -p /var/lib/freon-data
+RUN mkdir -p /var/lib/freon
+RUN mkdir -p /var/lib/freon/data
+COPY --from=ui /src/ui/build/web /var/lib/freon/ui
 
 ENV GIN_MODE=release
-ENV FREON_DB_PATH=/var/lib/freon-data/freon.db
-ENV FREON_UI_PATH=/var/lib/freon-ui
+ENV FREON_DB_PATH=/var/lib/freon/data/freon.db
+ENV FREON_UI_PATH=/var/lib/freon/ui
 
 CMD ["/usr/bin/freon", "server"]
