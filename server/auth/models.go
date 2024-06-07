@@ -28,11 +28,15 @@ func init() {
 	}
 	if notFound {
 		log.Print("creating superuser...")
+		username := os.Getenv("FREON_ADMIN_DEFAULT_USERNAME")
+		if username == "" {
+			username = "freon-admin"
+		}
 		user := User{
-			Username:    "freon-admin",
+			Username:    username,
 			IsSuperuser: true,
 		}
-		password := os.Getenv("FREON_ADMIN_PASSWORD")
+		password := os.Getenv("FREON_ADMIN_DEFAULT_PASSWORD")
 		if password == "" {
 			password = "admin"
 		}
