@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"strings"
 	"syscall"
 	"time"
 
@@ -21,6 +22,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+const defaultPort = ":8080"
+
+func init() {
+	serverCmd.Flags().String("port", defaultPort, "http listening port [env: FREON_PORT]")
+	viper.BindPFlag("port", serverCmd.Flags().Lookup("port"))
+}
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
@@ -63,13 +71,15 @@ var serverCmd = &cobra.Command{
 		}
 
 		port := viper.GetString("PORT")
-		startServer(":"+port, r)
+		if strings.HasPrefix(port, "tcp://") {
+			// this is an env clash with k8s
+			// FIXME this is a hack
+			port = defaultPort
+		} else if !strings.HasPrefix(port, ":") {
+			port = ":" + port
+		}
+		startServer(port, r)
 	},
-}
-
-func init() {
-	serverCmd.Flags().String("port", "8080", "http listening port [env: FREON_PORT]")
-	viper.BindPFlag("port", serverCmd.Flags().Lookup("port"))
 }
 
 func startServer(addr string, r http.Handler) {
