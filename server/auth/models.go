@@ -143,6 +143,15 @@ func (w WallabagCredentials) ToCredentials() wallabag.Credentials {
 	}
 }
 
+func (w *WallabagCredentials) UpdateWith(wcreds *wallabag.Credentials) {
+	w.ServerURL = wcreds.ServerURL
+	w.ClientID = wcreds.ClientID
+	w.ClientSecret = wcreds.ClientSecret
+	w.Username = wcreds.Username
+	w.Password = wcreds.Password
+	w.WallabagToken = wcreds.Token
+}
+
 type Token struct {
 	database.ModelUUID
 	Name   string

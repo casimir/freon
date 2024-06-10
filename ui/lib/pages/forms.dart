@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cadanse/cadanse.dart';
 import 'package:cadanse/components/widgets/error.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +12,22 @@ import '../services/freon.dart';
 part 'forms.g.dart';
 
 class ResourceForm extends ConsumerStatefulWidget {
-  const ResourceForm({super.key, required this.resourcePath, this.resourceKey});
+  const ResourceForm({
+    super.key,
+    required this.resourcePath,
+    this.resourceKey,
+    this.resourceSchema,
+  });
 
   final String resourcePath;
   final String? resourceKey;
+  final String? resourceSchema;
+
+  String get baseUrl => '/control$resourcePath';
+  String get resourceUrl =>
+      '$baseUrl${resourceKey != null ? '/$resourceKey' : ''}';
+  ObjectSchemaPath get osp =>
+      ObjectSchemaPath(resourceUrl, resourceSchema ?? '$baseUrl/schema');
 
   @override
   ConsumerState<ResourceForm> createState() => _FormState();
@@ -21,14 +35,12 @@ class ResourceForm extends ConsumerStatefulWidget {
 
 class _FormState extends ConsumerState<ResourceForm> {
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
+  bool _isUpdating = false;
   bool _obscureText = true;
 
   @override
   Widget build(BuildContext context) {
-    final urlKeySuffix =
-        widget.resourceKey != null ? '/${widget.resourceKey}' : '';
-    final url = '/control${widget.resourcePath}$urlKeySuffix';
-    return ref.watch(jsonFetcher(url)).when(
+    return ref.watch(jsonFetcher(widget.osp)).when(
           data: (data) => _buildForm(data),
           error: (error, _) => ErrorScreen(error: error as Exception),
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -38,6 +50,7 @@ class _FormState extends ConsumerState<ResourceForm> {
   Widget _buildForm(List<dynamic> data) {
     final fields =
         data.map((it) => FormFieldValue.fromJson(Map.from(it))).toList();
+    final isCreation = fields.any((it) => it.name == 'ID' && it.value == 0);
     return Center(
       child: Column(
         children: [
@@ -45,7 +58,10 @@ class _FormState extends ConsumerState<ResourceForm> {
             key: _formKey,
             child: ListView(
               shrinkWrap: true,
-              children: fields.map((it) => _buildFieldEntry(it)).toList(),
+              children: fields
+                  .where((it) => !(isCreation && it.readonly))
+                  .map((it) => _buildFieldEntry(it))
+                  .toList(),
             ),
           ),
           C.spacers.verticalContent,
@@ -60,13 +76,32 @@ class _FormState extends ConsumerState<ResourceForm> {
                       _obscureText = !value;
                     }),
                   ),
-                  const SizedBox(width: 8.0),
+                  C.spacers.verticalContent,
                   const Text('Show sensitive data'),
                 ],
               ),
               ElevatedButton(
-                onPressed: () {},
-                child: const Text('Save'),
+                onPressed: () async {
+                  try {
+                    setState(() => _isUpdating = true);
+                    if (_formKey.currentState!.saveAndValidate()) {
+                      final data = _formKey.currentState!.value;
+                      await jsonUpload(widget.resourceUrl, data);
+                    }
+                  } on FreonError catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(e.toString()),
+                      ));
+                    }
+                  } finally {
+                    _isUpdating = false;
+                    ref.invalidate(jsonFetcher(widget.osp));
+                  }
+                },
+                child: _isUpdating
+                    ? const CircularProgressIndicator()
+                    : Text(isCreation ? 'Create' : 'Update'),
               ),
             ],
           )

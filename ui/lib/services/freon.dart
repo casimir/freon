@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:html';
 
 import 'package:flutter/foundation.dart';
@@ -7,22 +8,22 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 const serverUrl = kDebugMode ? 'http://localhost:8080' : '';
 
 class FreonError implements Exception {
-  FreonError(this.message, [this.error]);
+  FreonError(this.message, [this.xhr]);
 
   final String message;
-  final Object? error;
+  final HttpRequest? xhr;
 
   @override
   String toString() {
-    if (error != null) {
-      return '$message: $error';
+    if (xhr != null) {
+      return '$message: ${xhr!.status}: ${xhr!.response}';
     }
     return message;
   }
 }
 
 class FreonUnknownError extends FreonError {
-  FreonUnknownError(Object error) : super('Unknown error', error);
+  FreonUnknownError(HttpRequest error) : super('Unknown error', error);
 }
 
 class FreonAuthError extends FreonError {
@@ -37,23 +38,75 @@ Future<R> freonCall<R>(Future<R> Function() call) async {
     if (xhr.status == 401) {
       throw FreonAuthError();
     }
-    throw FreonUnknownError(e);
+    throw FreonUnknownError(xhr);
   }
 }
 
+class ObjectSchemaPath {
+  const ObjectSchemaPath(this.path, [this.schemaPath]);
+
+  final String path;
+  final String? schemaPath;
+
+  @override
+  operator ==(Object other) =>
+      other is ObjectSchemaPath &&
+      other.path == path &&
+      other.schemaPath == schemaPath;
+
+  @override
+  int get hashCode => Object.hash(path.hashCode, schemaPath.hashCode);
+}
+
 final jsonFetcher =
-    FutureProvider.autoDispose.family<dynamic, String>((ref, path) {
+    FutureProvider.autoDispose.family<dynamic, ObjectSchemaPath>((ref, osp) {
+  print("FETCHING ${osp.path}");
   return freonCall(() async {
-    final url = serverUrl + path;
-    final xhr = await HttpRequest.request(url, responseType: 'json');
-    ref.onDispose(() {
-      xhr.abort();
-    });
-    return xhr.response;
+    try {
+      final xhr = await HttpRequest.request(
+        serverUrl + osp.path,
+        responseType: 'json',
+      );
+      ref.onDispose(() => xhr.abort());
+      return xhr.response;
+    } on ProgressEvent catch (e) {
+      final xhr = e.target as HttpRequest;
+      if (xhr.status == 404 && osp.schemaPath != null) {
+        final xhrSchema = await HttpRequest.request(
+          serverUrl + osp.schemaPath!,
+          responseType: 'json',
+        );
+        ref.onDispose(() => xhrSchema.abort());
+        return xhrSchema.response;
+      }
+      rethrow;
+    }
   });
 });
 
-Future<HttpRequest> postForm(String path, Map<String, String> data) async {
-  return await freonCall(
-      () async => HttpRequest.postFormData('$serverUrl$path', data));
+class ObjectUpload {
+  const ObjectUpload(this.path, this.data, {this.method = 'PUT'});
+
+  final String path;
+  final String method;
+  final Map<String, dynamic> data;
+
+  String get jsonData => jsonEncode(data);
+}
+
+Future<Map<String, dynamic>> jsonUpload(
+  String path,
+  Map<String, dynamic> data, {
+  String method = 'PUT',
+}) {
+  return freonCall(() async {
+    final xhr = await HttpRequest.request(
+      serverUrl + path,
+      method: method,
+      responseType: 'json',
+      sendData: jsonEncode(data),
+    );
+    // TODO how to cancel xhr if the future is canceled?
+    return xhr.response;
+  });
 }

@@ -1,4 +1,3 @@
-import 'package:cadanse/components/widgets/cards.dart';
 import 'package:cadanse/components/widgets/error.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,7 +18,7 @@ class _ResourceListState extends ConsumerState<ResourceList> {
   @override
   Widget build(BuildContext context) {
     final url = '/control${widget.resourcePath}';
-    return ref.watch(jsonFetcher(url)).when(
+    return ref.watch(jsonFetcher(ObjectSchemaPath(url))).when(
           data: (data) => _buildList(data),
           error: (error, _) => ErrorScreen(error: error as Exception),
           loading: () => const Center(child: CircularProgressIndicator()),

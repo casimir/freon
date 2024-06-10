@@ -6,7 +6,7 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import '../services/user_session.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
