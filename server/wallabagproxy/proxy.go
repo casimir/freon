@@ -22,6 +22,13 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		wcreds := auth.GetWallabagCredentials(c)
 		client := wallabag.NewWallabagClient(wcreds.ToCredentials())
 
+		if wcreds.WallabagToken == nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"message": "no wallabag session active",
+			})
+			return
+		}
+
 		path := path.Join("/api", c.Param("path"))
 		URL, _ := client.BuildURL(path, nil)
 
