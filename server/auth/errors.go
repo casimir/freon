@@ -34,6 +34,15 @@ func (e *InvalidSessionError) Error() string {
 	return fmt.Sprintf("invalid session: %q", e.Session)
 }
 
+type UnknownModelError struct {
+	Name  string
+	Value any
+}
+
+func (e *UnknownModelError) Error() string {
+	return fmt.Sprintf("unknown %s: %q", e.Name, e.Value)
+}
+
 type UnknownUserError struct {
 	Value string
 }

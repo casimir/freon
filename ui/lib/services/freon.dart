@@ -42,6 +42,18 @@ Future<R> freonCall<R>(Future<R> Function() call) async {
   }
 }
 
+Future<dynamic> freonHttpDelete(String path) async {
+  return await freonCall(() async {
+    final xhr = await HttpRequest.request(
+      serverUrl + path,
+      method: 'DELETE',
+      responseType: 'json',
+    );
+    // TODO how to cancel xhr if the future is canceled?
+    return xhr.response;
+  });
+}
+
 class ObjectSchemaPath {
   const ObjectSchemaPath(this.path, [this.schemaPath]);
 
@@ -60,7 +72,6 @@ class ObjectSchemaPath {
 
 final jsonFetcher =
     FutureProvider.autoDispose.family<dynamic, ObjectSchemaPath>((ref, osp) {
-  print("FETCHING ${osp.path}");
   return freonCall(() async {
     try {
       final xhr = await HttpRequest.request(
@@ -94,7 +105,7 @@ class ObjectUpload {
   String get jsonData => jsonEncode(data);
 }
 
-Future<Map<String, dynamic>> jsonUpload(
+Future<dynamic> jsonUpload(
   String path,
   Map<String, dynamic> data, {
   String method = 'PUT',

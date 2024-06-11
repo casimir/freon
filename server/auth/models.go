@@ -68,6 +68,23 @@ func (u User) CheckPassword(password string) bool {
 	return bcrypt.CompareHashAndPassword(u.Password, []byte(password)) == nil
 }
 
+func (u User) GetToken(ID string) (*Token, bool, error) {
+	pk, err := uuid.Parse(ID)
+	if err != nil {
+		return nil, false, err
+	}
+
+	var token Token
+	result := database.DB.Where("user_id = ?", u.ID).Take(&token, pk)
+	if result.Error != nil {
+		return nil, false, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, true, &UnknownModelError{"token", pk}
+	}
+	return &token, true, nil
+}
+
 func (u User) GetTokens() ([]Token, error) {
 	var tokens []Token
 	err := database.DB.Model(&Token{}).Where("user_id = ?", u.ID).Find(&tokens).Error
@@ -143,21 +160,26 @@ func (w WallabagCredentials) ToCredentials() wallabag.Credentials {
 	}
 }
 
-func (w *WallabagCredentials) UpdateWith(wcreds *wallabag.Credentials) {
-	w.ServerURL = wcreds.ServerURL
-	w.ClientID = wcreds.ClientID
-	w.ClientSecret = wcreds.ClientSecret
-	w.Username = wcreds.Username
-	w.Password = wcreds.Password
-	w.WallabagToken = wcreds.Token
+func (w *WallabagCredentials) UpdateWith(o *wallabag.Credentials) {
+	w.ServerURL = o.ServerURL
+	w.ClientID = o.ClientID
+	w.ClientSecret = o.ClientSecret
+	w.Username = o.Username
+	w.Password = o.Password
+	w.WallabagToken = o.Token
 }
 
 type Token struct {
 	database.ModelUUID
 	Name   string
-	Scopes []TokenScope `gorm:"many2many:token_scopes;"`
+	Scopes []TokenScope `gorm:"many2many:token_scopes;" desc:"hidden"`
 	UserID uuid.UUID    `desc:"hidden"`
 	User   User         `desc:"hidden"`
+}
+
+func (t *Token) UpdateWith(o *Token) {
+	t.Name = o.Name
+	t.Scopes = o.Scopes
 }
 
 type TokenScope struct {

@@ -13,6 +13,7 @@ import (
 )
 
 func RegisterRoutes(r *gin.RouterGroup) {
+	r.GET("/api/tokens/schema", describer(auth.Token{}))
 	r.GET("/api/tokens", func(c *gin.Context) {
 		user := auth.GetUser(c)
 
@@ -57,6 +58,68 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			return
 		}
 	})
+	r.GET("/api/tokens/:id", func(c *gin.Context) {
+		user := auth.GetUser(c)
+		id := c.Param("id")
+
+		token, ok, err := user.GetToken(id)
+		if err != nil {
+			status := http.StatusNotFound
+			if ok {
+				status = http.StatusInternalServerError
+			}
+			c.AbortWithStatusJSON(status, gin.H{"message": err.Error()})
+			return
+		}
+
+		payload, err := serialize.Describe(token)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, payload)
+	})
+	r.PUT("/api/tokens/:id", func(c *gin.Context) {
+		user := auth.GetUser(c)
+		id := c.Param("id")
+
+		token, ok, err := user.GetToken(id)
+		if err != nil {
+			status := http.StatusNotFound
+			if ok {
+				status = http.StatusInternalServerError
+			}
+			c.AbortWithStatusJSON(status, gin.H{"message": err.Error()})
+			return
+		}
+
+		var other auth.Token
+		if err := c.ShouldBindJSON(&other); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+		token.UpdateWith(&other)
+
+		if result := database.DB.Save(&token); result.Error != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"message": result.Error.Error(),
+			})
+			return
+		}
+
+		payload, err := serialize.Describe(token)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, payload)
+	})
 	r.DELETE("/api/tokens/:id", func(c *gin.Context) {
 		user := auth.GetUser(c)
 		id := c.Param("id")
@@ -66,9 +129,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"message": err.Error(),
 			})
-			return
-		}
-		if !ok {
+		} else if !ok {
 			c.Status(http.StatusBadRequest)
 		}
 	})
