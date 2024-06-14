@@ -2,12 +2,14 @@ package control
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/casimir/freon/auth"
 	"github.com/casimir/freon/common"
 	"github.com/casimir/freon/database"
 	"github.com/casimir/freon/serialize"
 	"github.com/casimir/freon/wallabag"
+	"github.com/casimir/freon/wallabagproxy"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -157,8 +159,8 @@ func RegisterRoutes(r *gin.RouterGroup) {
 	r.PUT("/wallabag/credentials", func(c *gin.Context) {
 		user := auth.GetUser(c)
 
-		var wcreds wallabag.Credentials
-		if err := c.ShouldBindJSON(&wcreds); err != nil {
+		var creds wallabag.Credentials
+		if err := c.ShouldBindJSON(&creds); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"message": err.Error(),
 			})
@@ -175,7 +177,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			})
 			return
 		}
-		user.WallabagCredentials.UpdateWith(&wcreds)
+		user.WallabagCredentials.UpdateWith(&creds)
 
 		result := database.DB.Session(&gorm.Session{FullSaveAssociations: true}).Save(&user)
 		if result.Error != nil {
@@ -184,36 +186,36 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			})
 			return
 		}
-	})
-	r.POST("/wallabag/credentials/authenticate", func(c *gin.Context) {
-		user := auth.GetUser(c)
-		if user.WallabagCredentialsID == nil {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"message": "no wallabag credentials configured",
-			})
-			return
-		}
-		wcreds := auth.MustGetWallabagCredentials(*user.WallabagCredentialsID)
 
-		var wuser struct {
-			Username string `json:"username" binding:"required"`
-			Password string `json:"password" binding:"required"`
-		}
-		if err := c.ShouldBind(&wuser); err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"message": err.Error(),
-			})
-			return
-		}
-		wcreds.Username = wuser.Username
-		wcreds.Password = wuser.Password
-
+		wcreds := user.WallabagCredentials
 		client := wallabag.NewWallabagClient(wcreds.ToCredentials())
-		client.FetchToken(wuser.Username, wuser.Password)
+		client.FetchToken(wcreds.Username, wcreds.Password)
 		wcreds.WallabagToken = client.Token()
-		if err := database.DB.Save(&wcreds).Error; err != nil {
+		if err := database.DB.Save(wcreds).Error; err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"message": err.Error(),
+			})
+			return
+		}
+	})
+	r.GET("/wallabag/credentials/check", func(c *gin.Context) {
+		user := auth.GetUser(c)
+
+		wcreds := auth.WallabagCredentials{}
+		err := database.DB.Model(&user).Association("WallabagCredentials").Find(&wcreds)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"message": err.Error(),
+			})
+		}
+
+		// force the token to be refreshed so that the credentials are really checked
+		wcreds.WallabagToken.ExpiresAt = time.Now().Add(-time.Second)
+
+		_, werr := wallabagproxy.CallWallabag(&wcreds, "GET", "/api/config", nil)
+		if werr != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"message": werr.Error(),
 			})
 			return
 		}

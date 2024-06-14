@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'freon.g.dart';
 
 const serverUrl = kDebugMode ? 'http://localhost:8080' : '';
 
@@ -120,4 +121,20 @@ Future<dynamic> jsonUpload(
     // TODO how to cancel xhr if the future is canceled?
     return xhr.response;
   });
+}
+
+@riverpod
+Future<Exception?> wallabagSessionCheck(WallabagSessionCheckRef ref) async {
+  try {
+    return freonCall(() async {
+      final xhr = await HttpRequest.request(
+        '$serverUrl/control/wallabag/credentials/check',
+        responseType: 'json',
+      );
+      ref.onDispose(() => xhr.abort());
+      return null;
+    });
+  } on Exception catch (e) {
+    return e;
+  }
 }

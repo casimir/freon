@@ -1,6 +1,8 @@
 package wallabagproxy
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -11,6 +13,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func CallWallabag(wcreds *auth.WallabagCredentials, method string, path string, payload any) (*http.Response, error) {
+	if wcreds.WallabagToken == nil {
+		return nil, errors.New("no wallabag session active")
+	}
+
+	client := wallabag.NewWallabagClient(wcreds.ToCredentials())
+	URL, err := client.BuildURL(path, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build URL: %w", err)
+	}
+
+	resp, werr := client.CallAPI(method, URL, payload)
+
+	if wcreds.WallabagToken.AccessToken != client.Token().AccessToken {
+		wcreds.WallabagToken = client.Token()
+		if result := database.DB.Save(wcreds); result.Error != nil {
+			return nil, fmt.Errorf("failed to save token: %w", result.Error)
+		}
+	}
+
+	return resp, werr
+}
+
 func RegisterRoutes(r *gin.RouterGroup) {
 	r.Any("/api/*path", auth.WallabagAuth(), func(c *gin.Context) {
 		// TODO find a way to declare has route without issue with the wildcard
@@ -20,17 +45,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		}
 
 		wcreds := auth.GetWallabagCredentials(c)
-		client := wallabag.NewWallabagClient(wcreds.ToCredentials())
-
-		if wcreds.WallabagToken == nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"message": "no wallabag session active",
-			})
-			return
-		}
-
 		path := path.Join("/api", c.Param("path"))
-		URL, _ := client.BuildURL(path, nil)
 
 		var resp *http.Response
 		var werr error
@@ -42,19 +57,9 @@ func RegisterRoutes(r *gin.RouterGroup) {
 				})
 				return
 			}
-			resp, werr = client.CallAPI(c.Request.Method, URL, payload)
+			resp, werr = CallWallabag(wcreds, c.Request.Method, path, payload)
 		} else {
-			resp, werr = client.CallAPI(c.Request.Method, URL, nil)
-		}
-
-		if wcreds.WallabagToken.AccessToken != client.Token().AccessToken {
-			wcreds.WallabagToken = client.Token()
-			if result := database.DB.Save(wcreds); result.Error != nil {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-					"message": result.Error.Error(),
-				})
-				return
-			}
+			resp, werr = CallWallabag(wcreds, c.Request.Method, path, nil)
 		}
 
 		if werr != nil {

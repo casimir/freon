@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'modules.dart';
 
@@ -14,5 +15,6 @@ class EventsModule extends Module {
       );
 
   @override
-  Widget build(BuildContext context) => const Center(child: Text('Events'));
+  Widget build(WidgetRef ref, BuildContext context) =>
+      const Center(child: Text('Events'));
 }

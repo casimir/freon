@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 abstract class Module {
@@ -6,7 +7,7 @@ abstract class Module {
   bool get superuserOnly => false;
   NavigationDestination get destination;
   Widget? get summary => null;
-  Widget build(BuildContext context);
+  Widget build(WidgetRef ref, BuildContext context);
 
   String get key => destination.label.toLowerCase().replaceAll(' ', '-');
 }
@@ -27,7 +28,8 @@ class HomeModule extends Module {
       );
 
   @override
-  Widget build(BuildContext context) => _buidModuleList(context, modules);
+  Widget build(WidgetRef ref, BuildContext context) =>
+      _buidModuleList(context, modules);
 }
 
 Widget _buidModuleList(BuildContext context, List<Module> modules) {

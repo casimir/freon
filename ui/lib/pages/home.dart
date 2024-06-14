@@ -53,7 +53,7 @@ class HomePageState extends ConsumerState<HomePage> {
           padding: C.paddings.defaultPadding,
           child: Container(
             constraints: const BoxConstraints(maxWidth: mediumBreakpoint),
-            child: modules[_selectedIndex].build(context),
+            child: modules[_selectedIndex].build(ref, context),
           ),
         ),
       ),

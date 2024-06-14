@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'modules.dart';
 
@@ -18,5 +19,6 @@ class UsersModule extends Module {
       );
 
   @override
-  Widget build(BuildContext context) => const Center(child: Text('Users'));
+  Widget build(WidgetRef ref, BuildContext context) =>
+      const Center(child: Text('Users'));
 }

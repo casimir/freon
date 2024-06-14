@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../pages/list.dart';
 import 'modules.dart';
@@ -15,6 +16,6 @@ class TokensModule extends Module {
       );
 
   @override
-  Widget build(BuildContext context) =>
+  Widget build(WidgetRef ref, BuildContext context) =>
       const ResourceList(resourcePath: '/api/tokens');
 }

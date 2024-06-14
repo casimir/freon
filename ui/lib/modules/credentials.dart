@@ -1,6 +1,9 @@
+import 'package:cadanse/cadanse.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../pages/forms.dart';
+import '../services/freon.dart';
 import 'modules.dart';
 
 class CredentialsModule extends Module {
@@ -15,6 +18,39 @@ class CredentialsModule extends Module {
       );
 
   @override
-  Widget build(BuildContext context) =>
-      const ResourceForm(resourcePath: '/wallabag/credentials');
+  Widget build(WidgetRef ref, BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            const Spacer(),
+            const Text(
+              'Session state',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            C.spacers.horizontalContent,
+            ref.watch(wallabagSessionCheckProvider).when(
+                  data: (result) {
+                    return result == null
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : const Icon(Icons.error, color: Colors.orange);
+                  },
+                  error: (e, st) => Tooltip(
+                    message: e.toString(),
+                    child: const Icon(Icons.error, color: Colors.red),
+                  ),
+                  loading: () => const CircularProgressIndicator(),
+                ),
+            C.spacers.horizontalContent,
+            IconButton(
+              onPressed: () => ref.invalidate(wallabagSessionCheckProvider),
+              icon: const Icon(Icons.refresh),
+            )
+          ],
+        ),
+        C.spacers.verticalContent,
+        const ResourceForm(resourcePath: '/wallabag/credentials'),
+      ],
+    );
+  }
 }
