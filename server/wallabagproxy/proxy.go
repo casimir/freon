@@ -38,12 +38,6 @@ func CallWallabag(wcreds *auth.WallabagCredentials, method string, path string, 
 
 func RegisterRoutes(r *gin.RouterGroup) {
 	r.Any("/api/*path", auth.WallabagAuth(), func(c *gin.Context) {
-		// TODO find a way to declare has route without issue with the wildcard
-		if c.Param("path") == "/info" {
-			infoHandler(c)
-			return
-		}
-
 		wcreds := auth.GetWallabagCredentials(c)
 		path := path.Join("/api", c.Param("path"))
 
