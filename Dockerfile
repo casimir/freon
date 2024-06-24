@@ -6,7 +6,7 @@ ARG VERSION
 # Build server
 #-------------------------------------------------------------------------------- 
 
-FROM golang:1.22-alpine as server
+FROM golang:1.22-alpine AS server
 
 RUN apk update && apk add build-base
 
@@ -22,7 +22,7 @@ RUN make server-headless
 # Build UI
 #-------------------------------------------------------------------------------- 
 
-FROM debian:stable-slim as ui
+FROM debian:stable-slim AS ui
 
 RUN apt-get update && apt-get install -y curl git make unzip zip
 RUN git clone -b stable --depth 1 https://github.com/flutter/flutter.git /opt/flutter
