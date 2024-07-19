@@ -41,6 +41,10 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		wcreds := auth.GetWallabagCredentials(c)
 		path := path.Join("/api", c.Param("path"))
 
+		if len(c.Request.URL.Query()) > 0 {
+			path += "?" + c.Request.URL.RawQuery
+		}
+
 		var resp *http.Response
 		var werr error
 		if c.Request.ContentLength > 0 {

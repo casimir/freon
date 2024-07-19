@@ -47,7 +47,8 @@ func (c WallabagClient) Token() *Token {
 
 func (c WallabagClient) BuildURL(path string, options Options) (string, error) {
 	URL := c.credentials.ServerURL + path
-	if !(options == nil || reflect.ValueOf(options).IsNil()) {
+	queryProvided := strings.Contains(path, "?")
+	if !queryProvided && !(options == nil || reflect.ValueOf(options).IsNil()) {
 		if err := options.Validate(); err != nil {
 			return "", err
 		}
