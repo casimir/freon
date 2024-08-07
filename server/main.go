@@ -10,9 +10,7 @@ import (
 )
 
 // experiments:
-// - CORS
-// - private token authentication
-// - proxy
+// - API token scope
 // - save endpoint
 // - frigoligo preferences sync
 // - remove all tags of an entry

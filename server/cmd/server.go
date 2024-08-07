@@ -35,7 +35,7 @@ var serverCmd = &cobra.Command{
 	Short: "Start the server",
 	Run: func(cmd *cobra.Command, args []string) {
 		r := gin.New()
-		r.Use(gin.Logger(), gin.Recovery())
+		r.Use(gin.Logger(), gin.Recovery(), cors.Default())
 
 		r.GET("/api/info", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
@@ -44,12 +44,9 @@ var serverCmd = &cobra.Command{
 			})
 		})
 
-		// TODO CORS config
-		corsMiddleware := cors.Default()
-
-		auth.RegisterRoutes(r.Group("/auth", corsMiddleware))
+		auth.RegisterRoutes(r.Group("/auth"))
 		api.RegisterRoutes(r.Group("/api", auth.TokenAuth()))
-		control.RegisterRoutes(r.Group("/control", corsMiddleware, auth.SessionAuth()))
+		control.RegisterRoutes(r.Group("/control", auth.SessionAuth()))
 		wallabagproxy.RegisterRoutes(r.Group("/wallabag", auth.TokenAuth()))
 
 		var hasUI bool
