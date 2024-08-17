@@ -3,6 +3,7 @@ package wallabag
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -81,9 +82,18 @@ func (c *WallabagClient) CallAPI(method string, URL string, payload any) (*http.
 	var req *http.Request
 	var err error
 	if payload != nil {
-		body := new(bytes.Buffer)
-		if err := json.NewEncoder(body).Encode(payload); err != nil {
-			return nil, err
+		var body io.Reader
+		switch payload := payload.(type) {
+		case []byte:
+			body = bytes.NewReader(payload)
+		case string:
+			body = strings.NewReader(payload)
+		default:
+			data, jsonErr := json.Marshal(payload)
+			if jsonErr != nil {
+				return nil, err
+			}
+			body = bytes.NewReader(data)
 		}
 		req, err = http.NewRequest(method, URL, body)
 	} else {
