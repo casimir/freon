@@ -12,10 +12,16 @@ class ResourceList extends ConsumerStatefulWidget {
     super.key,
     required this.resourcePath,
     this.resourceSchema,
+    required this.icon,
+    required this.titleKey,
+    this.subtitleKey = 'ID',
   });
 
   final String resourcePath;
   final String? resourceSchema;
+  final Icon icon;
+  final String titleKey;
+  final String? subtitleKey;
 
   @override
   ConsumerState<ResourceList> createState() => _ResourceListState();
@@ -55,16 +61,16 @@ class _ResourceListState extends ConsumerState<ResourceList> {
           itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index];
-            var name = item['Name']!.value;
+            var name = item[widget.titleKey]!.value;
             if (name == null || name.isEmpty) {
-              name = '<No name>';
+              name = '<No label>';
             }
             return Card(
               child: SelectionArea(
                 child: ListTile(
-                  leading: const Icon(Icons.key),
+                  leading: widget.icon,
                   title: Text(name),
-                  subtitle: Text(item['ID']!.value),
+                  subtitle: Text(item[widget.subtitleKey]!.value),
                   trailing: IconButton(
                     onPressed: () => _showEditModal(context, item['ID']!.value),
                     icon: const Icon(Icons.edit),

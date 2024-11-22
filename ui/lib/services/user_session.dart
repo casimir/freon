@@ -17,7 +17,7 @@ class UserSession extends _$UserSession {
   Future<UserData?> fetchData() async {
     try {
       return await freonCall(() async {
-        final body = await HttpRequest.getString('$serverUrl/control/user/me');
+        final body = await HttpRequest.getString('$serverUrl/control/users/me');
         return UserData.fromJson(jsonDecode(body));
       });
     } on FreonAuthError catch (_) {

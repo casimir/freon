@@ -59,6 +59,8 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			})
 			return
 		}
+
+		c.Status(http.StatusCreated)
 	})
 	r.GET("/api/tokens/:id", func(c *gin.Context) {
 		user := auth.GetUser(c)
@@ -74,14 +76,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			return
 		}
 
-		payload, err := serialize.Describe(token)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, payload)
+		common.DescribeAndRespond(c, token)
 	})
 	r.PUT("/api/tokens/:id", func(c *gin.Context) {
 		user := auth.GetUser(c)
@@ -136,7 +131,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		}
 	})
 
-	r.GET("/user/me", common.UserDetailHandler(nil))
+	registerUsersRoutes(r.Group("/users"))
 
 	r.GET("/wallabag/credentials/schema", describer(auth.WallabagCredentials{}))
 	r.GET("/wallabag/credentials", func(c *gin.Context) {

@@ -49,11 +49,11 @@ func init() {
 
 type User struct {
 	database.ModelUUID
-	Username              string `gorm:"unique"`
-	Password              []byte
-	IsSuperuser           bool
-	WallabagCredentialsID *uint
-	WallabagCredentials   *WallabagCredentials
+	Username              string               `gorm:"unique"`
+	Password              []byte               `desc:"obfuscate"`
+	IsSuperuser           bool                 `desc:"hidden"`
+	WallabagCredentialsID *uint                `desc:"hidden"`
+	WallabagCredentials   *WallabagCredentials `desc:"hidden"`
 }
 
 func (u *User) SetPassword(password string) error {
@@ -113,6 +113,36 @@ func (u *User) DeleteToken(ID string) (bool, error) {
 	return true, nil
 }
 
+func CreateUser(username, password string, superuser bool) (*User, error) {
+	user := User{
+		Username:    username,
+		IsSuperuser: superuser,
+	}
+	user.SetPassword(password)
+	result := database.DB.Create(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, nil
+}
+
+func MustCreateUser(username, password string, superuser bool) *User {
+	user, err := CreateUser(username, password, superuser)
+	if err != nil {
+		panic(err)
+	}
+	return user
+}
+
+func GetAllUsers() ([]User, error) {
+	var users []User
+	result := database.DB.Find(&users).Order("username")
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return users, nil
+}
+
 func FindUserByID(ID string) (*User, error) {
 	pk, err := uuid.Parse(ID)
 	if err != nil {
@@ -122,12 +152,33 @@ func FindUserByID(ID string) (*User, error) {
 	var user User
 	result := database.DB.Take(&user, pk)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, result.Error
 	}
+
 	if result.RowsAffected == 0 {
-		return nil, &UnknownUserError{ID}
+		return nil, nil
 	}
 	return &user, nil
+}
+
+func DeleteUser(ID string) (bool, error) {
+	pk, err := uuid.Parse(ID)
+	if err != nil {
+		return false, err
+	}
+
+	result := database.DB.Delete(&User{}, pk)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return false, nil
+		} else {
+			return false, result.Error
+		}
+	}
+	return true, nil
 }
 
 type WallabagCredentials struct {

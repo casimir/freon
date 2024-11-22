@@ -16,6 +16,9 @@ class TokensModule extends Module {
       );
 
   @override
-  Widget build(WidgetRef ref, BuildContext context) =>
-      const ResourceList(resourcePath: '/api/tokens');
+  Widget build(WidgetRef ref, BuildContext context) => const ResourceList(
+        resourcePath: '/api/tokens',
+        icon: Icon(Icons.key),
+        titleKey: 'Name',
+      );
 }

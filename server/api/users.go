@@ -6,5 +6,5 @@ import (
 )
 
 func registerUsersRoutes(r *gin.RouterGroup) {
-	r.GET("/me", common.UserDetailHandler(nil))
+	r.GET("/me", common.CurrentUserHandler())
 }

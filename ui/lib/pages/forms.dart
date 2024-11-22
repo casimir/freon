@@ -132,13 +132,13 @@ class _FormState extends ConsumerState<ResourceForm> {
                       );
                     }
                   } on FreonError catch (e) {
-                    if (context.mounted) {
+                    if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text(e.toString()),
                       ));
                     }
                   } catch (e) {
-                    if (context.mounted) {
+                    if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text('?? $e'),
                         backgroundColor: Colors.red,

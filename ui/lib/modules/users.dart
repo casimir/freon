@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../pages/list.dart';
 import 'modules.dart';
 
 // Handles users, groups and permissions.
@@ -19,6 +20,9 @@ class UsersModule extends Module {
       );
 
   @override
-  Widget build(WidgetRef ref, BuildContext context) =>
-      const Center(child: Text('Users'));
+  Widget build(WidgetRef ref, BuildContext context) => const ResourceList(
+        resourcePath: '/users',
+        icon: Icon(Icons.person),
+        titleKey: 'Username',
+      );
 }

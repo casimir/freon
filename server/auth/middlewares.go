@@ -102,6 +102,20 @@ func SessionAuth() gin.HandlerFunc {
 	}
 }
 
+// HardcodedAuth is a middleware that sets a hardcoded user as the authenticated user.
+//
+// Mostly useful for development and testing.
+func HardcodedAuth(UserID uuid.UUID) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var user User
+		if err := database.DB.Take(&user, UserID).Error; err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		c.Set(CtxKeyUser, &user)
+	}
+}
+
 func GetUser(c *gin.Context) *User {
 	user, ok := c.Get(CtxKeyUser)
 	if !ok {
