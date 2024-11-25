@@ -14,6 +14,7 @@ func init() {
 	viper.AutomaticEnv()
 
 	rootCmd.AddCommand(serverCmd)
+	rootCmd.AddCommand(updatePasswordCmd)
 	rootCmd.AddCommand(versionCmd)
 }
 
