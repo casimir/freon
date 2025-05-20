@@ -1,0 +1,35 @@
+[project]
+name = "freon-server"
+version = "0.1.0"
+description = ""
+authors = [{ name = "casimir", email = "martin@casimir.me" }]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "Django (>=5.2.1,<6.0.0)",
+    "django-ninja (>=1.4.1,<2.0.0)",
+    "python-environ (>=0.4.54,<0.5.0)",
+    "django-extensions (>=4.1,<5.0)",
+    "django-queryinspect (>=1.1.0,<2.0.0)",
+    "orjson (>=3.10.18,<4.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.webserver]
+optional = true
+dependencies = { granian = "^2.2.6" }
+
+[tool.poetry.group.dev.dependencies]
+granian = { extras = ["reload"], version = "^2.2.6" }
+django-debug-toolbar = "^5.2.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+src_paths = ["freon_server"]

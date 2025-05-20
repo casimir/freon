@@ -20,7 +20,7 @@ jobs:
         with:
           sparse-checkout: |
             tools/extract-version.sh
-            ui/pubspec.yaml
+            freon_server/pyproject.toml
       - id: extract
         run: echo "version=$(./tools/extract_version.sh)" >> $GITHUB_OUTPUT
 
@@ -49,8 +49,6 @@ jobs:
         with:
           context: .
           push: true
-          build-args: |
-            VERSION=${{ needs.extract-version.outputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - uses: actions/attest-build-provenance@v1

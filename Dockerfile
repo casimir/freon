@@ -3,57 +3,41 @@
 ARG VERSION
 
 #-------------------------------------------------------------------------------- 
-# Build server
+# Build virtualenv
 #-------------------------------------------------------------------------------- 
 
-FROM golang:1.22-alpine AS server
+FROM python:3.13 AS venv
 
-RUN apk update && apk add build-base
+ENV POETRY_VERSION=2.1.3
+ENV VIRTUAL_ENV=/opt/venv
 
-COPY ./server/go.* /src/server/
-WORKDIR /src/server
-RUN go mod download
+RUN pip install --upgrade pip
+RUN pip install poetry==${POETRY_VERSION}
+RUN poetry config virtualenvs.in-project true
 
-COPY . /src
 WORKDIR /src
-RUN make server-headless
-
-#-------------------------------------------------------------------------------- 
-# Build UI
-#-------------------------------------------------------------------------------- 
-
-FROM debian:stable-slim AS ui
-
-RUN apt-get update && apt-get install -y curl git make unzip zip
-RUN git clone -b stable --depth 1 https://github.com/flutter/flutter.git /opt/flutter
-RUN git config --global --add safe.directory /usr/local/flutter
-ENV PATH="/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH"
-RUN flutter config --no-analytics --enable-web \
-        --no-enable-linux-desktop --no-enable-macos-desktop --no-enable-windows-desktop \
-        --no-enable-android --no-enable-ios --no-enable-fuchsia
-RUN flutter precache web
-
-COPY ./ui/pubspec.* ./
-WORKDIR /src/ui
-RUN flutter pub get
-
-COPY . /src
-WORKDIR /src
-RUN make ui
+COPY freon_server/poetry.lock freon_server/pyproject.toml ./
+RUN poetry install --no-interaction --only main,webserver
 
 #-------------------------------------------------------------------------------- 
 # Final image
 #-------------------------------------------------------------------------------- 
 
-FROM alpine:latest
+FROM python:3.13-slim
 
-COPY --from=server /src/server/build/freon-headless /usr/bin/freon
-RUN mkdir -p /var/lib/freon
-RUN mkdir -p /var/lib/freon/data
-COPY --from=ui /src/ui/build/web /var/lib/freon/ui
+COPY --from=venv /src/.venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
 
-ENV GIN_MODE=release
+COPY freon_server /src
+WORKDIR /src
+
+ENV DEBUG=false
 ENV FREON_DB_PATH=/var/lib/freon/data/freon.db
-ENV FREON_UI_PATH=/var/lib/freon/ui
+ENV VERSION=unknown
 
-CMD ["/usr/bin/freon", "server"]
+RUN mkdir -p $(dirname ${FREON_DB_PATH})
+
+RUN python manage.py migrate
+RUN python manage.py collectstatic --noinput
+
+CMD ["python", "manage.py", "check"]
