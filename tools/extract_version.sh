@@ -1,3 +1,3 @@
 #!/bin/sh
 
-awk -F'[ +]' '/version:/{ print $2 }' ui/pubspec.yaml 
+awk -F'[ +]' '/version = "/{ print $3 }' freon_server/pyproject.toml | tr -d '"'
