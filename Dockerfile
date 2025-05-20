@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG VERSION
+ARG VERSION=unknown
 
 #-------------------------------------------------------------------------------- 
 # Build virtualenv
@@ -25,7 +25,10 @@ RUN poetry install --no-interaction --only main,webserver
 
 FROM python:3.13-slim
 
+ARG VERSION
+
 COPY --from=venv /src/.venv /opt/venv
+ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
 COPY freon_server /src
@@ -33,11 +36,9 @@ WORKDIR /src
 
 ENV DEBUG=false
 ENV FREON_DB_PATH=/var/lib/freon/data/freon.db
-ENV VERSION=unknown
+ENV VERSION=${VERSION}
 
 RUN mkdir -p $(dirname ${FREON_DB_PATH})
-
-RUN python manage.py migrate
 RUN python manage.py collectstatic --noinput
 
 CMD ["python", "manage.py", "check"]
