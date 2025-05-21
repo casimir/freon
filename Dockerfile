@@ -42,4 +42,4 @@ ENV VERSION=${VERSION}
 RUN mkdir -p $(dirname ${FREON_DB_PATH})
 RUN ONESHOT_SECRET_KEY=true python manage.py collectstatic --noinput
 
-CMD ["python", "manage.py", "check"]
+CMD ["/src/run.sh", "--help"]
