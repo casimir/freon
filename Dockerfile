@@ -36,6 +36,7 @@ WORKDIR /src
 
 ENV DEBUG=false
 ENV FREON_DB_PATH=/var/lib/freon/data/freon.db
+ENV PYTHONUNBUFFERED=1
 ENV VERSION=${VERSION}
 
 RUN mkdir -p $(dirname ${FREON_DB_PATH})
