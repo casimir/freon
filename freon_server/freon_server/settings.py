@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import environ
+from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -9,8 +10,13 @@ if env.bool("LOAD_DOTENV", default=True):
     env_file_path = (BASE_DIR / ".env").as_posix()
     environ.Env.read_env(env_file_path)
 
-
-SECRET_KEY = env("SECRET_KEY")
+# Django setup ensures a secret key is set when DEBUG is False. This variable
+# allow to bypass this check on demand. For example, when collecting static files
+# in the docker image build.
+if env.bool("ONESHOT_SECRET_KEY", default=False):
+    SECRET_KEY = get_random_secret_key()
+else:
+    SECRET_KEY = env("SECRET_KEY")
 
 VERSION = env("VERSION", default="unknown")
 
