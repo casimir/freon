@@ -24,7 +24,7 @@ VERSION = env("VERSION", default="unknown")
 DEBUG = env.bool("DEBUG", default=False)
 
 if freon_url := env("FREON_URL", default=""):
-    ALLOWED_HOSTS = [urlparse(freon_url).domain]
+    ALLOWED_HOSTS = [urlparse(freon_url).hostname]
     CSRF_TRUSTED_ORIGINS = [freon_url]
 else:
     ALLOWED_HOSTS = []
