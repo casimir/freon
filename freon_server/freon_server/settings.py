@@ -1,4 +1,5 @@
 from pathlib import Path
+from urllib.parse import urlparse
 
 import environ
 from django.core.management.utils import get_random_secret_key
@@ -22,9 +23,13 @@ VERSION = env("VERSION", default="unknown")
 
 DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = []
-if hosts := env.list("FREON_HOSTS", cast=str, default=None):
-    ALLOWED_HOSTS += hosts
+if freon_url := env("FREON_URL", default=""):
+    ALLOWED_HOSTS = [urlparse(freon_url).domain]
+    CSRF_TRUSTED_ORIGINS = [freon_url]
+else:
+    ALLOWED_HOSTS = []
+    CSRF_TRUSTED_ORIGINS = []
+
 INTERNAL_IPS = ["127.0.0.1"]
 
 
