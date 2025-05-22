@@ -1,6 +1,6 @@
 [project]
 name = "freon-server"
-version = "0.1.5"
+version = "0.1.6"
 description = ""
 authors = [{ name = "casimir", email = "martin@casimir.me" }]
 readme = "README.md"
