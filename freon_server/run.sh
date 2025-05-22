@@ -23,7 +23,7 @@ COMMAND=$1
  
 case "$COMMAND" in
     "webserver")
-        granian --interface asginl freon_server/asgi.py:application --access-log
+        python -m granian --interface asginl freon_server/asgi.py:application --access-log
         ;;
     *)
         echo "error: unknown command: $COMMAND\n"
