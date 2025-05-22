@@ -22,7 +22,9 @@ VERSION = env("VERSION", default="unknown")
 
 DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+if host := env("FREON_DOMAIN", default=""):
+    ALLOWED_HOSTS.append(host)
 INTERNAL_IPS = ["127.0.0.1"]
 
 
