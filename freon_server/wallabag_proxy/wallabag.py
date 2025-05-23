@@ -30,8 +30,11 @@ async def request_wallabag(
     method: str,
     path: str,
     query: dict | None = None,
+    body: bytes | None = None,
     payload: dict | None = None,
 ) -> httpx.Response:
+    assert body is None or payload is None, "body and payload cannot be used together"
+
     headers = {
         "User-Agent": USER_AGENT,
         "Content-Type": "application/json",
@@ -50,6 +53,7 @@ async def request_wallabag(
         resp = await client.request(
             method,
             f"{credentials.server_url.rstrip('/')}{path}",
+            content=body,
             json=payload,
             params=query,
             headers=headers,

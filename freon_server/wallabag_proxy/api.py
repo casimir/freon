@@ -15,15 +15,13 @@ router = Router(auth=WallabagProxyAuth(), tags=["wallabag"])
 async def forward_to_wallabag(request: HttpRequest, target: str):
     credentials: WallabagCredentials = request.auth
     path = f"/api/{target}"
-    has_body = request.META.get("CONTENT_LENGTH", "") != ""
-    payload = request.body if has_body else None
 
     resp = await request_wallabag(
         credentials,
         request.method,
         path,
         query=request.GET,
-        payload=payload,
+        body=request.body,
     )
     elapsed = resp.elapsed.total_seconds() * 1000
     logger.info(
