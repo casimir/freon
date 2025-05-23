@@ -169,7 +169,8 @@ if DEBUG:
         },
         "handlers": {
             "console": {
-                "level": "DEBUG",
+                "level": "DEBUG" if DEBUG else "INFO",
+                "filters": [],
                 "class": "logging.StreamHandler",
             },
             "freon_server": {
