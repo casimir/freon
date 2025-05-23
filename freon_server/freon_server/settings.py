@@ -32,6 +32,13 @@ else:
 
 INTERNAL_IPS = ["127.0.0.1"]
 
+# The API is fully open by design because it can be consumed by web apps running
+# on arbitrary domains.
+# The rest of the service is protected using CSRF (Django's default practice).
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = False
+CORS_URLS_REGEX = r"^/(wallabag/)?api/.*$"
+
 
 # Application definition
 
@@ -43,6 +50,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # third party
+    "corsheaders",
     "django_extensions",
     "ninja",
     # first party
@@ -51,6 +59,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

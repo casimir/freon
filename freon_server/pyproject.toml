@@ -1,6 +1,6 @@
 [project]
 name = "freon-server"
-version = "0.1.9"
+version = "0.1.10"
 description = ""
 authors = [{ name = "casimir", email = "martin@casimir.me" }]
 readme = "README.md"
@@ -13,6 +13,7 @@ dependencies = [
     "django-queryinspect (>=1.1.0,<2.0.0)",
     "orjson (>=3.10.18,<4.0.0)",
     "httpx (>=0.28.1,<0.29.0)",
+    "django-cors-headers (>=4.7.0,<5.0.0)",
 ]
 
 [tool.poetry]
