@@ -26,11 +26,11 @@ The goal of this experiment is to try a new authentication system based on beare
 
 _Yep, the one [from Apple](https://www.apple.com/macos/continuity/)._
 
-Conceptually, frigoligo is a client that you should find on any of your devices. This ubiquity is nice but frustrating in practice when switching from one device to another. That's the exact use case for the principle of continuity.
+Conceptually, frigoligo is a client that should work on each of your devices. This ubiquity is nice but frustrating in practice because of state disparity between devices. When switching from one device to another, you'd expect to find the same settings and current state (of reading) without micro-managing all your devices. That's the exact use case for the principle of continuity.
 
-In order to make this work, frigoligo needs to have access to the state of things, with the server as the source of truth. The state does not need to be specific to frigoligo, on a more theoretical level, the server just need to maintain arbitrary data at different level (e.g. account, entry, ...)
+In order to make this work, frigoligo needs to have access to the state of things, with the server as the source of truth. The state does not need to be specific to frigoligo, on a more theoretical level, the server just needs to maintain arbitrary data at different levels (e.g. account, entry, etc).
 
-- [ ] User preferences sync (for frigoligo: notification badge, reader theme, ...)
+- [ ] User preferences sync (for frigoligo: notification badge, reader theme, etc)
 - [ ] Article (entry) read progression
 
 ### Service announcements
