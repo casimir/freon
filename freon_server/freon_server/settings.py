@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "ninja",
     # first party
     "accounts",
+    "services",
     "wallabag_proxy",
 ]
 

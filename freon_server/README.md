@@ -31,7 +31,7 @@ Conceptually, frigoligo is a client that should work on each of your devices. Th
 In order to make this work, frigoligo needs to have access to the state of things, with the server as the source of truth. The state does not need to be specific to frigoligo, on a more theoretical level, the server just needs to maintain arbitrary data at different levels (e.g. account, entry, etc).
 
 - [ ] User preferences sync (for frigoligo: notification badge, reader theme, etc)
-- [ ] Article (entry) read progression
+- [x] Article (entry) read progression
 
 ### Service announcements
 
@@ -57,5 +57,5 @@ One of the killer features of paperless is the ability to automatically tag docu
 
 ### Miscellaneous
 
-- [ ] Save an article using only a GET request (for a simpler intergration in all kind of tools)
+- [ ] Save an article using only a GET request (for a simpler integration in all kind of tools)
 - [ ] Fetch article from [archive.org](https://archive.org/help/wayback_api.php)

@@ -1,6 +1,7 @@
 import uuid
 from dataclasses import dataclass
 
+from django.http import HttpRequest
 from ninja.errors import AuthorizationError
 from ninja.security import HttpBearer
 
@@ -73,3 +74,7 @@ class TokenAuth(HttpBearer):
             raise AuthorizationError()
 
         return account_token
+
+
+class TokenAuthHttpRequest(HttpRequest):
+    auth: Token

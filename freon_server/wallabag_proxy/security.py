@@ -13,8 +13,8 @@ class WallabagProxyAuth(TokenAuth):
         account_token = await super().authenticate(request, token)
         user = account_token.user
         try:
-            return await sync_to_async(
-                WallabagCredentials.objects.select_related("token").get
-            )(user=user)
+            return await WallabagCredentials.objects.select_related("token").aget(
+                user=user
+            )
         except WallabagCredentials.DoesNotExist:
             return None

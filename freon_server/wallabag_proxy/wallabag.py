@@ -1,4 +1,6 @@
 import logging
+from typing import Any
+from urllib.parse import urlencode
 
 import httpx
 from asgiref.sync import sync_to_async
@@ -29,11 +31,16 @@ async def request_wallabag(
     credentials: WallabagCredentials,
     method: str,
     path: str,
-    query: dict | None = None,
+    query: dict[str, Any] | None = None,
     body: bytes | None = None,
     payload: dict | None = None,
 ) -> httpx.Response:
     assert body is None or payload is None, "body and payload cannot be used together"
+
+    url = f"{credentials.server_url.rstrip('/')}{path}"
+
+    query_fragment = "?" + urlencode(query) if query else ""
+    logger.info(f"> WAPI[{credentials.pk}] {method} {url}{query_fragment}")
 
     headers = {
         "User-Agent": USER_AGENT,
@@ -52,7 +59,7 @@ async def request_wallabag(
     async with httpx.AsyncClient() as client:
         resp = await client.request(
             method,
-            f"{credentials.server_url.rstrip('/')}{path}",
+            url,
             content=body,
             json=payload,
             params=query,
