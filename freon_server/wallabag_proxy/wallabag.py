@@ -54,6 +54,7 @@ async def request_wallabag(
             except WallabagApiError as e:
                 logger.error(e)
                 raise
+        assert credentials.token is not None
         headers["Authorization"] = f"Bearer {credentials.token.access_token}"
 
     async with httpx.AsyncClient() as client:
