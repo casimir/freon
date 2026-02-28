@@ -3,8 +3,13 @@ name = "freon-server"
 version = "0.1.12"
 description = ""
 authors = [{ name = "casimir", email = "martin@casimir.me" }]
+requires-python = ">=3.13,<4"
 readme = "README.md"
-requires-python = ">=3.13"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
 dependencies = [
     "Django (>=5.2.1,<6.0.0)",
     "django-ninja (>=1.4.1,<2.0.0)",
@@ -16,21 +21,26 @@ dependencies = [
     "django-cors-headers (>=4.7.0,<5.0.0)",
 ]
 
-[tool.poetry]
-package-mode = false
+[dependency-groups]
+webserver = ["granian>=2.2.6,<3"]
+dev = [
+    "granian[reload]>=2.2.6,<3",
+    "django-debug-toolbar>=5.2.0,<6",
+    "ipython>=9.2.0,<10",
+]
 
-[tool.poetry.group.webserver]
-optional = true
-dependencies = { granian = "^2.2.6" }
-
-[tool.poetry.group.dev.dependencies]
-granian = { extras = ["reload"], version = "^2.2.6" }
-django-debug-toolbar = "^5.2.0"
+[tool.uv]
+package = false
+default-groups = ["dev"]
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.28,<0.10.0"]
+build-backend = "uv_build"
 
-[tool.isort]
-profile = "black"
-src_paths = ["freon_server"]
+[tool.ruff.lint]
+extend-select = [
+    "I", # isort
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]

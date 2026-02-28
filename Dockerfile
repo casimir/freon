@@ -8,16 +8,13 @@ ARG VERSION=unknown
 
 FROM python:3.13 AS venv
 
-ENV POETRY_VERSION=2.1.3
-ENV VIRTUAL_ENV=/opt/venv
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 
-RUN pip install --upgrade pip
-RUN pip install poetry==${POETRY_VERSION}
-RUN poetry config virtualenvs.in-project true
+COPY --from=ghcr.io/astral-sh/uv:0.10.6 /uv /usr/local/bin/uv
 
 WORKDIR /src
-COPY freon_server/poetry.lock freon_server/pyproject.toml ./
-RUN poetry install --no-interaction --only main,webserver
+COPY freon_server/uv.lock freon_server/pyproject.toml ./
+RUN uv sync --frozen --no-dev --group webserver --no-install-project --link-mode=copy
 
 #-------------------------------------------------------------------------------- 
 # Final image
@@ -27,7 +24,7 @@ FROM python:3.13-slim
 
 ARG VERSION
 
-COPY --from=venv /src/.venv /opt/venv
+COPY --from=venv /opt/venv /opt/venv
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
