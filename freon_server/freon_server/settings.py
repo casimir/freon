@@ -2,7 +2,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import environ
+import sentry_sdk
 from django.core.management.utils import get_random_secret_key
+from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,6 +24,16 @@ else:
 VERSION = env("VERSION", default="unknown")
 
 DEBUG = env.bool("DEBUG", default=False)
+
+if sentry_dsn := env("SENTRY_DSN", default=""):
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        release=VERSION,
+        send_default_pii=False,
+        auto_session_tracking=False,
+        traces_sample_rate=0.01,
+        integrations=[DjangoIntegration()],
+    )
 
 if freon_url := env("FREON_URL", default=""):
     ALLOWED_HOSTS = [urlparse(freon_url).hostname]
@@ -146,7 +158,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Debug mode settings
 
 if DEBUG:
-
     INSTALLED_APPS = [
         *INSTALLED_APPS,
         "debug_toolbar",

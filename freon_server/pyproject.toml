@@ -1,6 +1,6 @@
 [project]
 name = "freon-server"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 authors = [{ name = "casimir", email = "martin@casimir.me" }]
 requires-python = ">=3.13,<4"
@@ -19,6 +19,7 @@ dependencies = [
     "orjson (>=3.10.18,<4.0.0)",
     "httpx (>=0.28.1,<0.29.0)",
     "django-cors-headers (>=4.7.0,<5.0.0)",
+    "sentry-sdk[django] (>=2.0.0,<3.0.0)",
 ]
 
 [dependency-groups]
