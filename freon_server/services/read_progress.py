@@ -6,24 +6,29 @@ from services.models import ReadProgress
 
 
 @dataclass
-class ReadProgressUpdate:
+class ReadProgressRecord:
     updated_at: datetime
     article_id: int
     progress: float
-
-
-type ReadProgressUpdates = list[ReadProgressUpdate]
-type ReadProgressSet = list[ReadProgress]
 
 
 class ReadProgressService:
     def __init__(self, user: User):
         self.user = user
 
-    async def list_since(self, dt: datetime) -> ReadProgressSet:
-        return [it async for it in ReadProgress.objects.of(self.user).since(dt)]
+    async def list_since(self, dt: datetime) -> list[ReadProgressRecord]:
+        return [
+            ReadProgressRecord(
+                updated_at=it.updated_at,
+                article_id=it.article_id,
+                progress=it.progress,
+            )
+            async for it in ReadProgress.objects.of(self.user).since(dt)
+        ]
 
-    async def compute_db_update(self, incoming: ReadProgressUpdates) -> ReadProgressSet:
+    async def compute_db_update(
+        self, incoming: list[ReadProgressRecord]
+    ) -> list[ReadProgressRecord]:
         oldest_update = min(incoming, key=lambda x: x.updated_at)
         progress_index = await (
             ReadProgress.objects.of(self.user)
@@ -48,7 +53,16 @@ class ReadProgressService:
                 )
         return update_set
 
-    async def apply_db_update(self, update_set: ReadProgressSet):
+    async def apply_db_update(self, records: list[ReadProgressRecord]):
+        update_set = [
+            ReadProgress(
+                user=self.user,
+                article_id=it.article_id,
+                progress=it.progress,
+                updated_at=it.updated_at,
+            )
+            for it in records
+        ]
         await ReadProgress.objects.abulk_create(
             update_set,
             update_conflicts=True,

@@ -5,7 +5,7 @@ from django.test import TestCase
 from accounts.models import User
 
 from .models import ReadProgress
-from .read_progress import ReadProgressService, ReadProgressUpdate, ReadProgressUpdates
+from .read_progress import ReadProgressService, ReadProgressRecord, ReadProgressUpdates
 
 
 class ReadProgressTest(TestCase):
@@ -31,12 +31,12 @@ class ReadProgressTest(TestCase):
 
     def _make_incoming_progresses(self) -> ReadProgressUpdates:
         return [
-            ReadProgressUpdate(
+            ReadProgressRecord(
                 updated_at=self.ref_moment + timedelta(hours=3),
                 article_id=2,
                 progress=0.3,
             ),
-            ReadProgressUpdate(
+            ReadProgressRecord(
                 updated_at=self.ref_moment,
                 article_id=3,
                 progress=0.7,

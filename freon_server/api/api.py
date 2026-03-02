@@ -6,7 +6,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 
 from accounts.security import TokenAuth, TokenAuthHttpRequest
-from services.read_progress import ReadProgressService, ReadProgressUpdates
+from services.read_progress import ReadProgressRecord, ReadProgressService
 
 router = Router(auth=TokenAuth())
 
@@ -31,17 +31,20 @@ async def index(request: TokenAuthHttpRequest):
 
 
 class GetReadProgressOut(Schema):
-    updates: ReadProgressUpdates
+    updates: list[ReadProgressRecord]
 
 
 @router.get("/read-progress", response=GetReadProgressOut)
-async def get_read_progress(request: TokenAuthHttpRequest, since: datetime):
+async def get_read_progress(
+    request: TokenAuthHttpRequest, since: datetime
+) -> GetReadProgressOut:
     service = ReadProgressService(request.auth.user)
-    return await service.list_since(since)
+    progress = await service.list_since(since)
+    return GetReadProgressOut(updates=progress)
 
 
 class PutReadProgressIn(Schema):
-    updates: ReadProgressUpdates
+    updates: list[ReadProgressRecord]
 
 
 @router.put("/read-progress")
