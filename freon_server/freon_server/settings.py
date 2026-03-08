@@ -25,13 +25,19 @@ VERSION = env("VERSION", default="unknown")
 
 DEBUG = env.bool("DEBUG", default=False)
 
+def _traces_sampler(ctx: dict) -> float:
+    if ctx.get("wsgi_environ", {}).get("PATH_INFO") == "/healthz":
+        return 0
+    return 0.01
+
+
 if sentry_dsn := env("SENTRY_DSN", default=""):
     sentry_sdk.init(
         dsn=sentry_dsn,
         release=VERSION,
         send_default_pii=False,
         auto_session_tracking=False,
-        traces_sample_rate=0.01,
+        traces_sampler=_traces_sampler,
         integrations=[DjangoIntegration()],
     )
 

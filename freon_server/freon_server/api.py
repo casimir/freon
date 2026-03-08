@@ -2,9 +2,9 @@ import orjson
 from ninja import NinjaAPI
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
-from wallabag_proxy.api import router as wallabag_proxy_router
 
 from api.api import router as api_router
+from wallabag_proxy.api import router as wallabag_proxy_router
 
 
 class ORJSONParser(Parser):
@@ -26,6 +26,12 @@ api = NinjaAPI(
     parser=ORJSONParser(),
     renderer=ORJSONRenderer(),
 )
+
+
+@api.get("/healthz", auth=None, include_in_schema=False)
+async def healthz(request):
+    return {"status": "ok"}
+
 
 api.add_router("/api/", api_router)
 api.add_router("/wallabag/", wallabag_proxy_router)
