@@ -1,12 +1,13 @@
 # syntax=docker/dockerfile:1
 
+ARG PYTHON_VERSION
 ARG VERSION=unknown
 
 #-------------------------------------------------------------------------------- 
 # Build virtualenv
 #-------------------------------------------------------------------------------- 
 
-FROM python:3.13 AS venv
+FROM python:${PYTHON_VERSION} AS venv
 
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 
@@ -14,13 +15,13 @@ COPY --from=ghcr.io/astral-sh/uv:0.10.6 /uv /usr/local/bin/uv
 
 WORKDIR /src
 COPY freon_server/uv.lock freon_server/pyproject.toml ./
-RUN uv sync --frozen --no-dev --group webserver --no-install-project --link-mode=copy
+RUN uv sync --locked --no-dev --group webserver --no-install-project --link-mode=copy
 
 #-------------------------------------------------------------------------------- 
 # Final image
 #-------------------------------------------------------------------------------- 
 
-FROM python:3.13-slim
+FROM python:${PYTHON_VERSION}-slim
 
 ARG VERSION
 
